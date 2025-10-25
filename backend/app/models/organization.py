@@ -20,7 +20,7 @@ class Organization(Base):
     primary_admin_name=Column(String, index=False)
     primary_admin_email=Column(String, index=False)
     website_url=Column(String, index=False) 
-    max_coordinators=Column(Integer, index=False)
+    max_coordinators=Column(String, index=False)
     timezone=Column(String, index=False) 
 
     # Auto-set on insert

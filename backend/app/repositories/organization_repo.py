@@ -70,6 +70,16 @@ def update_organization(db, org_id: int, org_update):
     return db_org
 
 
+# Update Logo url in db
+def update_logo_url(db, org_details, logo_url):
+   
+    org_details.logo_url = logo_url
+    
+   
+    db.commit()
+    db.refresh(org_details)
+    return org_details
+
 # Delete organization
 def delete_organization(db,db_org):
     db.delete(db_org)

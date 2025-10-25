@@ -5,6 +5,10 @@ from ..core.database import get_db
 from ..services import organization_service
 from ..schemas import organization
 from typing import List
+from fastapi import File, UploadFile
+import shutil
+import uuid
+import os
 
 
 # Organizations router
@@ -45,6 +49,9 @@ def get_organization(
         raise HTTPException(status_code=500, detail=str(e))
     
 
+
+
+
  # Get All Organizations
 @router.get("/",response_model=List[organization.AllOrganizationRead])
 def get_organizations(
@@ -57,6 +64,39 @@ def get_organizations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+#update organization logo 
+@router.post("/{org_id}/logo")
+def upload_organization_logo( 
+    org_id: int,
+    file: UploadFile = File(...), # This receives the file
+    db: Session = Depends(get_db)
+):
+    
+
+    # Get the file extension (e.g., .png, .jpg)
+    _, extension = os.path.splitext(file.filename)
+    
+    # Created a unique name to prevent file collisions
+    filename = f"{uuid.uuid4()}{extension}"
+    
+    # Created the full file path
+    file_path = os.path.join("static/uploads", filename)
+    
+    try:
+        updated_org = organization_service.update_organization_logo_url(
+            db=db, 
+            org_id=org_id, 
+            file=file,
+            file_path=file_path,
+            filename=filename
+        )
+        return updated_org
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 # Update organization
 @router.put("/{org_id}", response_model=organization.OrganizationRead)
