@@ -33,3 +33,25 @@ def get_users_for_organization(db, org_id):
         
     # Call repository
     return user_repo.get_users_by_organization(db, org_id)
+
+
+
+def update_user_details(db,user_id,user_update):
+    db_org = repositories.user_repo.update_user(db, user_id, user_update)
+    
+    # if no user found based on user_id it raises a 404 resource not found HTTPException
+    if not db_org:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return db_org
+
+def delete_user(db,user_id):
+    user=repositories.user_repo.get_user_by_id(db,user_id)
+
+    
+    
+    # if no user found based on user_id it raises a 404 resource not found HTTPException
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return repositories.user_repo.delete_user(db, user)

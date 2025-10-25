@@ -39,6 +39,40 @@ def read_users_for_organization(
         return users
     
     except HTTPException as e:
+        raise e   
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+#Update User details
+@router.put("/{user_id}")
+def update_user(
+    user_id:int,
+    user_update:user.UserUpdate,
+    db: 
+    Session = Depends(get_db)
+):
+    try:
+        user = user_service.update_user_details(db,user_id,user_update)
+        return user
+    
+    except HTTPException as e:
+        raise e  
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+#Delete User
+@router.delete("/{user_id}")
+def delete_user(
+    user_id:int,
+    db: 
+    Session = Depends(get_db)
+):
+    try:
+        user_status = user_service.delete_user(db,user_id)
+        return user_status
+    
+    except HTTPException as e:
         raise e 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

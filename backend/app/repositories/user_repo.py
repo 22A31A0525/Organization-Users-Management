@@ -6,6 +6,10 @@ from fastapi import HTTPException
 
 
 
+# Get user by Id
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(user.User).filter(user.User.id == user_id).first()
+
 # Get user by name
 def get_user_by_name(db: Session, username: str):
     return db.query(user.User).filter(user.User.name == username).first()
@@ -34,6 +38,32 @@ def create_user(db, User):
     return db_user
 
 
+
+# Update user
+def update_user(db,user_id,user_update):
+    
+    user_data=get_user_by_id(db,user_id)
+
+    if not user_data:
+        return None
+    
+    update_data = user_update.dict(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(user_data, key, value)
+ 
+    # Commit the changes
+    db.commit()
+    db.refresh(user_data)
+    return user_data
+
+
+# Delete user by user entity
+def delete_user(db:Session,user):
+    db.delete(user)
+    db.commit()
+    return  "User Deleted Successfully "
+
 # Delete users by organization ID
 def delete_users_by_organization(db: Session, org_id: int):
     
@@ -44,3 +74,4 @@ def delete_users_by_organization(db: Session, org_id: int):
 
     db.commit()
     return True
+
