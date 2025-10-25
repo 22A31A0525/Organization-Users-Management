@@ -10,7 +10,7 @@ const OrganizationRow = ({ organization, onView, onDelete }) => {
       <td className="py-3 px-4 text-sm text-gray-900 flex items-center">
         {organization.logo_url ? (
           <img
-            src={organization.logo_url}
+            src={`http://localhost:8000${organization.logo_url}`}
             alt="Org Logo"
             className="h-6 w-6 rounded-full mr-2"
           />
@@ -22,7 +22,7 @@ const OrganizationRow = ({ organization, onView, onDelete }) => {
         {organization.name}
       </td>
       <td className="py-3 px-4 text-sm text-gray-600">
-        {organization.pending_requests} pending requests
+        {organization.pending_requests || 0} pending requests
       </td>
       <td className="py-3 px-4 text-sm text-gray-600">
         <StatusPill status={organization.status} />

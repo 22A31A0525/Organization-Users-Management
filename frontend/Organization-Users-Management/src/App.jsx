@@ -17,9 +17,9 @@ function App() {
       <Routes>
         {/* Redirect from root to your organizations page */}
         <Route path="/" element={<Navigate to="/organizations" replace />} />
+
         <Route path="/dashboard" element={<Layout />} />
         <Route path="/organizations" element={<ManageOrganizationsPage />} />
-        {/* Add more routes here, e.g., /organizations/:orgId for details */}
         <Route
           path="/organizations/:id"
           element={<OrganizationDetailsPage />}

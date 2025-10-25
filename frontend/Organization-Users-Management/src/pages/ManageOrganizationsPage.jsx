@@ -1,121 +1,142 @@
 // src/pages/ManageOrganizationsPage.jsx
-import React, { useState, useEffect } from "react";
-import { PlusIcon } from "@heroicons/react/20/solid"; // Use solid for the button
+import React, { useState, useEffect, useCallback } from "react";
+import { PlusIcon } from "@heroicons/react/20/solid";
+import { useNavigate } from "react-router-dom";
+
+// Component Imports
 import OrganizationTable from "../components/organizations/OrganizationTable";
 import Button from "../components/ui/Button";
-import Layout from "../components/layout/Layout";
-import default_organization from "../assests/corporate.png";
+import Layout from "../components/layout/Layout"; // Assuming Layout is used in App.jsx
 import SlideOver from "../components/ui/SlideOver";
 import AddOrganizationForm from "../components/organizations/AddOrganizationForm";
 
-const ManageOrganizationsPage = () => {
-  // ... (all your state and functions: useState, useEffect, etc.) ...
+// Service Imports
+import {
+  createOrganization,
+  getOrganizations,
+  deleteOrganization,
+} from "../services/organizationService";
 
+const ManageOrganizationsPage = () => {
+  // State Variables
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // For general page errors (fetch, delete)
+  const [formError, setFormError] = useState(null); // For errors specific to the Add form
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const itemsPerPage = 5;
+  const itemsPerPage = 5; // Or whatever you prefer
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchOrganizations = async () => {
-      try {
-        setLoading(true);
-        // Mock Data
-        const allMockData = [
-          {
-            id: 1,
-            name: "Organization Name 1",
-            logo_url: default_organization,
-            pending_requests: 45,
-            status: "Active",
-          },
-          {
-            id: 2,
-            name: "Organization Name 2",
-            logo_url: default_organization,
-            pending_requests: 45,
-            status: "Blocked",
-          },
-          {
-            id: 3,
-            name: "Organization Name 3",
-            logo_url: default_organization,
-            pending_requests: 45,
-            status: "Inactive",
-          },
-          {
-            id: 4,
-            name: "Organization Name 4",
-            logo_url: default_organization,
-            pending_requests: 10,
-            status: "Active",
-          },
-          {
-            id: 5,
-            name: "Organization Name 5",
-            logo_url: default_organization,
-            pending_requests: 2,
-            status: "Active",
-          },
-        ];
+  // --- Data Fetching ---
+  const fetchOrganizations = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null); // Clear previous errors on fetch start
+      const response = await getOrganizations();
 
-        const paginatedData = allMockData.slice(
-          (currentPage - 1) * itemsPerPage,
-          currentPage * itemsPerPage
-        );
-        setOrganizations(paginatedData);
-        setTotalItems(allMockData.length);
-      } catch (err) {
-        setError("Failed to fetch organizations.");
-      } finally {
-        setLoading(false);
+      setTotalItems(response.data.length); // Get total count before pagination
+
+      // Calculate pagination slice
+      const paginatedData = response.data.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      setOrganizations(paginatedData);
+
+      // Handle edge case: Go to previous page if current page becomes empty after deletion
+      if (paginatedData.length === 0 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
       }
-    };
+    } catch (err) {
+      console.error("Failed to fetch organizations:", err);
+      setError(
+        "Failed to load organizations. Please check your connection and try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage]); // Dependency: re-fetch if currentPage changes
 
+  // Initial data fetch on component mount
+  useEffect(() => {
     fetchOrganizations();
-  }, [currentPage]);
+  }, [fetchOrganizations]); // Run whenever fetchOrganizations changes (due to currentPage)
 
+  // --- Modal Handlers ---
   const handleAddOrganizationClick = () => {
-    setIsAddModalOpen(true); // Open the modal
+    setFormError(null); // Clear any old form errors when opening
+    setIsAddModalOpen(true);
   };
 
   const handleCloseAddModal = () => {
-    setIsAddModalOpen(false); // Close the modal
+    setIsAddModalOpen(false);
+    setFormError(null); // Clear errors when closing manually
   };
 
+  // --- CRUD Handlers ---
   const handleSaveNewOrganization = async (formData) => {
-    console.log("Attempting to save new organization:", formData);
     setIsSubmitting(true);
-    // try {
-    //   // --- 4. Call your API to create the organization ---
-    //   // const newOrg = await createOrganization(formData);
-    //   // console.log('Organization created:', newOrg);
+    setFormError(null); // Clear previous errors
+    try {
+      await createOrganization(formData);
+      setIsAddModalOpen(false); // Close modal on success
 
-    //   // For now, mock a delay and success
-    //   await new Promise(resolve => setTimeout(resolve, 1000));
-    //   alert(`Organization "${formData.name}" added successfully (mock)!`);
-
-    //   setIsAddModalOpen(false); // Close modal on success
-    //   // --- 5. Re-fetch data to update the table ---
-    //   // setCurrentPage(1); // Optionally go back to first page
-    //   // fetchOrganizations(); // This will re-trigger the useEffect
-    //   window.location.reload(); // Simple reload for mock, use actual re-fetch
-
-    // } catch (err) {
-    //   console.error('Error adding organization:', err);
-    //   alert('Failed to add organization.'); // Basic error handling
-    // } finally {
-    //   setIsSubmitting(false);
-    // }
+      // Go to first page to see the new item & refetch
+      if (currentPage !== 1) {
+        setCurrentPage(1); // This will trigger useEffect to refetch
+      } else {
+        fetchOrganizations(); // Already on page 1, just refetch
+      }
+      alert("Organization added successfully!");
+    } catch (err) {
+      console.error("Error adding organization:", err.response || err);
+      // Display specific backend error message if available
+      if (err.response?.data?.detail) {
+        setFormError(err.response.data.detail); // Show error inside the form
+        alert(`Error: ${err.response.data.detail}`);
+      } else {
+        setFormError("An unexpected error occurred."); // Generic error
+        alert("Failed to add organization.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleView = (orgId) => console.log("View organization:", orgId);
-  const handleDelete = (orgId) => console.log("Delete organization:", orgId);
+  const handleView = (orgId) => {
+    navigate(`${orgId}`); // Navigate to the details page
+  };
 
+  const handleDelete = async (orgId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this organization and all its users?"
+      )
+    ) {
+      return; // Stop if user cancels
+    }
+
+    try {
+      await deleteOrganization(orgId);
+      alert("Organization successfully deleted.");
+      fetchOrganizations(); // Refetch data to update the table
+    } catch (err) {
+      console.error("Error deleting organization:", err.response || err);
+      // Display specific backend error message if available
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail); // Show error above the table
+        alert(`Error: ${err.response.data.detail}`);
+      } else {
+        setError("Failed to delete organization."); // Generic error
+        alert("Failed to delete organization.");
+      }
+    }
+  };
+
+  // --- Pagination Props ---
   const paginationProps = {
     currentPage: currentPage,
     totalItems: totalItems,
@@ -123,31 +144,51 @@ const ManageOrganizationsPage = () => {
     onPageChange: (newPage) => setCurrentPage(newPage),
   };
 
-  if (loading) return <div className="text-center p-4">Loading...</div>;
-  if (error) return <div className="text-center p-4 text-red-600">{error}</div>;
+  // --- Render Logic ---
+  // Initial loading state
+  if (loading && organizations.length === 0) {
+    return <div className="text-center p-4">Loading organizations...</div>;
+  }
+
+  // Error state (if fetch failed completely)
+  if (error && organizations.length === 0) {
+    return <div className="text-center p-4 text-red-600">{error}</div>;
+  }
 
   return (
+    // Note: Removed the redundant <Layout/> wrapper here, assuming it's in App.jsx
     <>
       <Layout />
       <div className=" max-w-[76rem] mx-auto shadow rounded-lg ">
-        <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8">
-          <h3 className="text-2xl  text-gray-900">B2B organizations</h3>
+        {" "}
+        {/* Added space-y for consistent spacing */}
+        {/* Header section with Title and Add Button */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            B2B organizations
+          </h1>
           <Button
             onClick={handleAddOrganizationClick}
             className="flex items-center"
           >
-            <PlusIcon className="h-5 w-5" />
+            <PlusIcon className="mr-1 h-5 w-5" />
             Add organization
           </Button>
         </div>
-
+        {/* Display general errors (like delete errors) above the table */}
+        {error && (
+          <div className="p-4 text-red-600 text-center bg-red-50 rounded-md">
+            {error}
+          </div>
+        )}
+        {/* Organization Table */}
         <OrganizationTable
           organizations={organizations}
           onView={handleView}
           onDelete={handleDelete}
           paginationProps={paginationProps}
         />
-
+        {/* Add Organization Slide-Over */}
         <SlideOver
           isOpen={isAddModalOpen}
           onClose={handleCloseAddModal}
@@ -157,6 +198,7 @@ const ManageOrganizationsPage = () => {
             onSave={handleSaveNewOrganization}
             onCancel={handleCloseAddModal}
             isLoading={isSubmitting}
+            apiError={formError} // Pass form-specific errors down
           />
         </SlideOver>
       </div>

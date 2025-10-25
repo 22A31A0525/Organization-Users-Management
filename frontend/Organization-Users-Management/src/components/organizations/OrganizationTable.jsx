@@ -36,15 +36,26 @@ const OrganizationTable = ({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {organizations.map((org) => (
-              <OrganizationRow
-                key={org.id}
-                organization={org}
-                onView={onView}
-                onDelete={onDelete}
-              />
-            ))}
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {organizations.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="py-4 text-center text-sm text-gray-500"
+                >
+                  No organization Found.
+                </td>
+              </tr>
+            ) : (
+              organizations.map((org) => (
+                <OrganizationRow
+                  key={org.id}
+                  organization={org}
+                  onView={onView}
+                  onDelete={onDelete}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -66,7 +66,7 @@ def get_organizations(
 
 
 #update organization logo 
-@router.post("/{org_id}/logo")
+@router.put("/{org_id}/logo")
 def upload_organization_logo( 
     org_id: int,
     file: UploadFile = File(...), # This receives the file

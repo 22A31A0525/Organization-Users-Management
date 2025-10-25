@@ -20,13 +20,13 @@ const Pagination = ({
       className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
       aria-label="Pagination"
     >
-      <div className="mb-2 sm:mb-0">
+      {/* <div className="mb-2 sm:mb-0">
         <p className="text-sm text-gray-700">
           Showing <span className="font-medium">{startItem}</span> to{" "}
           <span className="font-medium">{endItem}</span> of{" "}
           <span className="font-medium">{totalItems}</span> results
         </p>
-      </div>
+      </div> */}
 
       <div className="flex justify-between space-x-2">
         <button
