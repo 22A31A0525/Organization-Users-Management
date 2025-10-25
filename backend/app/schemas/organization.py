@@ -23,6 +23,15 @@ class OrganizationCreate(BaseModel):
     support_email: EmailStr
     phone: str
 
+class AllOrganizationRead(BaseModel):
+    id:int
+    name:str
+    status:str
+    logo_url: Optional[str] = None
+    class Config:
+        orm_mode = True
+    
+
 class OrganizationRead(BaseModel):
     id: int
     name: str

@@ -4,18 +4,18 @@ from sqlalchemy.orm import sessionmaker
 from .config import settings  # Import your settings
 
 
-# This connects to the database URL from your config.py
+# Connect to database
 engine = create_engine(settings.DATABASE_URL)
 
-# This class is responsible for creating new DB sessions
+# Create DB session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-# Your database models (in app/models/) will inherit from this class
+# Base class for models
 Base = declarative_base()
 
 
-# to get a database session for each request.
+# Get DB session per request
 def get_db():
     db = SessionLocal()
     try:
