@@ -1,1 +1,6 @@
-"fastapi[standard]" uvicorn
+uvicorn
+fastapi
+sqlalchemy
+pydantic_settings
+pydantic[email]
+python-multipart

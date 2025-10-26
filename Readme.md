@@ -95,7 +95,7 @@ Before running this application, make sure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd Interview-buddy
+cd Organization-Users-Management
 ```
 
 ### 2. Backend Setup
@@ -119,7 +119,7 @@ DATABASE_URL=postgresql://username:password@localhost:5432/dbname
 # The application will auto-create tables on startup
 
 # Start the FastAPI server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload
 ```
 
 ### 3. Frontend Setup
